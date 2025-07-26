@@ -38,7 +38,7 @@ CHAT_ID = "آیدی_چت_شما"          # مثال: "120223427"
   ```bash
   pip install python-telegram-bot requests numpy asyncio
   ```
-  ### 1. کلون کردن ریپوزیتوری
+### 1. کلون کردن ریپوزیتوری
 ```bash
   git clone https://github.com/TahaT80/Crypto_alert
   cd Crypto_alert
