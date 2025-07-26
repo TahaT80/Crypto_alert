@@ -14,18 +14,13 @@
 2. نمادها و قیمت‌های هدف را در لیست `alerts` تعریف کنید
 3. نوع هشدار را مشخص کنید (`D` برای نزولی، `U` برای صعودی)
 
-## 🛠 نیازمندی‌ها
-- Python 3.7+
-- کتابخانه‌های مورد نیاز:
-  ```bash
-  pip install python-telegram-bot requests numpy asyncio
-  ```
 
 ## 🏃‍♂️ راه‌اندازی
-```bash
-  git clone https://github.com/TahaT80/Crypto_alert
-  cd Crypto_alert
-  python main.py
+
+### تنظیمات
+  ```py
+TELEGRAM_TOKEN = "توکن_ربات_شما"   مثال: "8158643934"
+CHAT_ID = "آیدی_چت_شما"          # مثال: "120223427"
   ```
 ## 📝 نمونه تنظیمات هشدار
   ```bash
@@ -34,6 +29,20 @@
     {'ID':2, "symbol": "ETHUSDT", "target": 3500, 'Goal':'D'},
     {'ID':3, "symbol": "ETHUSDT", "target": 350, 'Goal':'U'},
 ]
+  ```
+## 🚀 نصب و اجرا
+
+### 🛠 نیازمندی‌ها
+- Python 3.7+
+- کتابخانه‌های مورد نیاز:
+  ```bash
+  pip install python-telegram-bot requests numpy asyncio
+  ```
+  
+```bash
+  git clone https://github.com/TahaT80/Crypto_alert
+  cd Crypto_alert
+  python main.py
   ```
 
 ## 📬 نمونه پیام هشدار
