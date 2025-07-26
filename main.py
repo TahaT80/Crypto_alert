@@ -4,8 +4,8 @@ from telegram import Bot
 import numpy as np
 
 # مشخصات
-TELEGRAM_TOKEN = "8158643934:AAEGKx9DGpo9K5ih1BVGIyNVU6HQmA81dd8"
-CHAT_ID = "120223427"
+TELEGRAM_TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+CHAT_ID = "xxxxxxxxxxx"
 
 
 alerts = [
