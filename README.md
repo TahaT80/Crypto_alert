@@ -23,8 +23,8 @@
 
 ## 🏃‍♂️ راه‌اندازی
 ```bash
-  git clone [آدرس ریپو]
-  cd crypto-alert-bot
+  git clone https://github.com/TahaT80/Crypto_alert
+  cd Crypto_alert
   python main.py
   ```
 ## 📝 نمونه تنظیمات هشدار
