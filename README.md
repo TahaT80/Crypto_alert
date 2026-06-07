@@ -56,7 +56,7 @@
 ### 1. کلون / دانلود پروژه
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/TahaT80/Crypto_alert
 cd rez
 ```
 
