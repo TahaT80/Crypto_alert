@@ -24,6 +24,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from xml.etree import ElementTree as ET
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import httpx
 from telegram import (
     Bot,
@@ -45,16 +49,16 @@ from telegram.ext import (
 # ============================================================
 # پیکربندی
 # ============================================================
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN") 
-CMC_API_KEY = os.environ.get("CMC_API_KEY") 
-CHART_API_KEY = os.environ.get("CHART_API_KEY") 
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
+CMC_API_KEY = os.environ.get("CMC_API_KEY", "").strip()
+CHART_API_KEY = os.environ.get("CHART_API_KEY", "").strip()
 
 if not TELEGRAM_TOKEN:
-    raise RuntimeError("❌ TELEGRAM_TOKEN تنظیم نشده است. لطفاً توکن ربات را قرار دهید.")
-
-# ⚠️ نکته امنیتی: توکن شما در سورس قرار دارد. پیشنهاد می‌شود:
-#   1) از @BotFather توکن جدید بگیرید (Rotate) چون این توکن قبلاً منتشر شده
-#   2) آن را در متغیر محیطی TELEGRAM_TOKEN قرار دهید و مقدار هاردکد را پاک کنید
+    raise RuntimeError(
+        "❌ TELEGRAM_TOKEN تنظیم نشده است.\n"
+        "   لطفاً فایل .env را بسازید و مقدار TELEGRAM_TOKEN را در آن قرار دهید.\n"
+        "   نمونه در .env.example موجود است."
+    )
 
 ALERTS_FILE = "alerts.json"
 NEWS_CACHE_TTL = 300

@@ -1,0 +1,19 @@
+# محیط و توکن‌ها
+.env
+*.env.local
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# لاگ و دیتای محلی
+bot.log
+crash_report.txt
+
+# ویرایشگر
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

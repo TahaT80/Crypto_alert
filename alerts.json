@@ -1,16 +1,3 @@
 {
-  "120223427": [
-    {
-      "ID": 1,
-      "symbol": "BTCUSDT",
-      "target": 50000.0,
-      "Goal": "D"
-    },
-    {
-      "ID": 2,
-      "symbol": "BTCUSDT",
-      "target": 44000.0,
-      "Goal": "D"
-    }
-  ]
+  
 }
