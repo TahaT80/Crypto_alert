@@ -1,266 +1,483 @@
 # 🤖 Crypto Alert Bot
 
-ربات تلگرام **هشدار قیمت و اخبار ارزهای دیجیتال** — نوشته‌شده با `python-telegram-bot` (v20+) و `asyncio`.
+<p align="center">
+  <a href="#-ویژگی‌ها">ویژگی‌ها</a> •
+  <a href="#-نصب-سریع">نصب</a> •
+  <a href="#-دستورات">دستورات</a> •
+  <a href="#-پنل-ادمین">پنل ادمین</a> •
+  <a href="#-استقرار-روی-سرور">استقرار</a> •
+  <a href="#-داکر">داکر</a> •
+  <a href="#-معماری">معماری</a>
+</p>
 
-با این ربات می‌توانید:
+<p align="center">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" />
+  <img alt="python-telegram-bot" src="https://img.shields.io/badge/PTB-21%2B-26A5E4?logo=telegram&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green" />
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey" />
+</p>
 
-- برای هر نماد بازار اسپات یا فیوچرز بایننس **هشدار قیمتی بالا/پایین** تنظیم کنید.
-- **قیمت لحظه‌ای** هر ارز (به همراه بالا/پایین ۲۴ ساعته، حجم و روند) را مشاهده کنید.
-- **چارت تکنیکال** با اندیکاتور `RSI` (سرویس `chart-img`) دریافت کنید.
-- **اخبار مهم بازار کریپتو** را از چند منبع معتبر (RSS) به‌صورت خلاصه و ترجمه‌شده به فارسی بخوانید.
-- لیست هشدارها را به‌صورت **صفحه‌بندی‌شده** با دکمه‌های شیشه‌ای (Inline) مدیریت کنید.
+بات تلگرام برای **هشدار قیمت لحظه‌ای ارزهای دیجیتال** + **چارت تکنیکال** + **سیستم اشتراک چندسطحی**.
+
+ساخته‌شده با [`python-telegram-bot`](https://github.com/python-telegram-bot/python-telegram-bot) و [`httpx`](https://github.com/encode/httpx)، با معماری ماژولار، async کامل، و پنل مدیریت داخل ربات.
 
 ---
 
 ## ✨ ویژگی‌ها
 
-| دسته | توضیح |
-|------|-------|
-| 🎯 هشدار قیمت | ثبت، حذف تکی، حذف همه، صفحه‌بندی، نمایش فاصله تا هدف |
-| 💲 قیمت لحظه‌ای | اسپات و فیوچرز بایننس + تشخیص خودکار نماد کوتاه (مثلاً `BTC` → `BTCUSDT`) |
-| 📊 چارت تکنیکال | بازه‌های `1h` / `4h` / `1d` به‌صورت عکس با RSI از TradingView |
-| 📰 اخبار بازار | RSS چندمنبعی (Crypto.News, Decrypt, Cointelegraph, …) + ترجمه فارسی + امتیاز اهمیت |
-| 🧠 رتبه‌بندی خبر | الگوریتم امتیازدهی بر اساس کلیدواژه‌های پراهمیت + تازگی انتشار |
-| 🗂 دامیننس‌ها | پشتیبانی از `BTC.D`، `ETH.D`، `TOTAL`، `TOTAL2`، `TOTAL3` و … از طریق TradingView |
-| 🛡 پایداری | قفل فایل async، کش قیمت/خبر، بازنشانی خودکار `check_alerts` در صورت کرش، لاگ فایل و کنسول |
-| 🌐 رابط کاربری | منوی شیشه‌ای (ReplyKeyboard) + دکمه‌های اینلاین برای هر عملیات |
-| 🇮🇷 فارسی‌سازی | منطقه زمانی `Asia/Tehran`، تاریخ شمسی (ماه‌های فارسی)، ترجمه خودکار عناوین |
+### 🔔 هشدار قیمت
+
+- **اسپات و فیوچرز بایننس** به‌صورت یکپارچه
+- **TradingView symbols** برای دامیننس (`BTC.D`, `TOTAL`, `TOTAL2`, …)
+- **تشخیص خودکار نماد**: `BTC` → `BTCUSDT`، `ETH` → `ETHUSDT` و چندین جفت دیگر
+- **تشخیص خودکار جهت**: اگر فقط عدد بفرستی، بالاتر از قیمت فعلی → U، پایین‌تر → D
+- **چک هر ۶۰ ثانیه** در پس‌زمینه (parallel برای همه نمادها)
+- **دکمه‌های شیشه‌ای** برای حذف، نمایش چارت، بروزرسانی
+- **صفحه‌بندی** لیست هشدارها
+
+### 💲 قیمت و چارت
+
+- قیمت لحظه‌ای + اطلاعات ۲۴h (high, low, volume, change%)
+- **چارت تکنیکال** با RSI، BB، EMA50 (Chart-Img API)
+- تایم‌فریم‌های متنوع: `1m`, `5m`, `15m`, `1h`, `4h`, `1d`, `1w`
+- **محدودیت نمودار روزانه** بر اساس پلن
+
+### 💎 پلن‌های اشتراک
+
+| پلن | قیمت/ماه | مدت | هشدار همزمان | نمودار/روز |
+|---|---|---|---|---|
+| 🆓 **FREE** | رایگان ♾️ | بدون انقضا | ۳ | ۲ |
+| ⭐ **PRO** | 550٬000 تومان | ۱ ماهه | ۸ | ۸ |
+| 💎 **VIP** | 900٬000 تومان | ۱ ماهه | ∞ | ∞ |
+
+> تنظیم قیمت و محدودیت‌ها فقط با ویرایش `PLANS` در `bot/config.py` — بدون نیاز به ری‌استارت.
+
+### 👑 پنل ادمین
+
+**بدون نیاز به باز کردن کد!** همه‌چیز از داخل ربات:
+
+- 📊 **آمار زنده**: تعداد کاربران هر پلن + منقضی‌ها + درخواست‌های در انتظار
+- 📩 **درخواست‌های خرید**: لیست با دکمه‌های **تایید/رد**
+- 👥 **لیست کاربران** با صفحه‌بندی
+- 🔍 **جستجوی کاربر** با chat_id
+- 🔔 **نوتیفیکیشن خودکار** به ادمین‌ها هنگام درخواست خرید
+
+### ⏰ ارسال خودکار
+
+- **تنزل خودکار** پلن‌های منقضی‌شده به FREE (هر شب ۰۰:۰۵ + استارت بات)
+
+---
+
+## 🧰 تکنولوژی
+
+| لایه | ابزار |
+|---|---|
+| **زبان** | Python 3.10+ |
+| **فریم‌ورک بات** | [`python-telegram-bot`](https://github.com/python-telegram-bot/python-telegram-bot) v21+ |
+| **HTTP** | [`httpx`](https://github.com/encode/httpx) (async + connection pool) |
+| **Scheduler** | [`APScheduler`](https://github.com/agronholm/apscheduler) |
+| **TradingView** | [`tradingview-scraper`](https://pypi.org/project/tradingview-scraper/) |
+| **ذخیره‌سازی** | JSON (در `data/`) |
+| **نمودار** | [chart-img.com](https://chart-img.com) API |
+| **لاگ** | stdout → journald (systemd) |
 
 ---
 
 ## 📁 ساختار پروژه
 
 ```
-.
-├── main.py            # سورس کامل ربات (تک‌فایلی)
-├── requirements.txt   # وابستگی‌های پایتون
-├── alerts.json        # ذخیره هشدارهای کاربران (auto-created در اولین اجرا)
-├── bot.log            # فایل لاگ (auto-created)
-└── README.md          # همین فایل
+Crypto_alert/
+├── main.py                    # نقطه ورود + ثبت هندلرها
+├── requirements.txt
+├── .env                       # تنظیمات محیطی (ساخته شود)
+├── .env.example
+├── Dockerfile
+├── docker-compose.yml
+├── deploy/
+│   ├── newsbot.service        # systemd unit
+│   ├── install.sh             # اسکریپت نصب
+│   └── README.md              # راهنمای deploy
+├── bot/
+│   ├── __init__.py
+│   ├── config.py              # env، ثابت‌ها، پلن‌ها
+│   ├── storage.py             # JSON I/O + کش in-memory + per-file lock
+│   ├── http_client.py         # کلاینت HTTP مشترک (connection pool)
+│   ├── utils.py               # قالب‌بندی، زمان
+│   ├── prices.py              # قیمت Binance + TradingView
+│   ├── ui.py                  # کیبوردها
+│   ├── alerts.py              # CRUD هشدار + تسک پس‌زمینه
+│   ├── subscriptions.py       # پلن‌ها + auto-demotion
+│   ├── admin.py               # پنل ادمین + pending requests
+│   ├── long_msg.py            # ارسال پیام طولانی
+│   ├── update.py              # startup + shutdown + error handler
+│   └── handlers/
+│       ├── commands.py        # /start, /plan, /grant, /admin, ...
+│       ├── callbacks.py       # دکمه‌ها + پنل ادمین
+│       └── messages.py        # پیام‌های آزاد + منو
+└── data/                      # JSON ها (auto-created)
+    ├── alerts.json
+    ├── subscribers.json
+    ├── subscriptions.json
+    ├── chart_usage.json
+    └── pending_requests.json
 ```
-
-> ربات به‌صورت **تک‌فایلی** (`main.py`) نوشته شده و تمام منطق (IO، HTTP، ترجمه، RSS، UI، حلقه بررسی هشدار) در همین فایل قرار دارد.
 
 ---
 
-## 🧰 پیش‌نیازها
+## 🚀 نصب سریع
 
-- **Python 3.10+** (به‌خاطر `zoneinfo` و pattern-matching)
-- دسترسی به اینترنت (برای بایننس، RSS، و سرویس‌های ترجمه)
-- یک **ربات تلگرام** ساخته‌شده با [@BotFather](https://t.me/BotFather)
+### پیش‌نیازها
 
----
+- **Python 3.10+** (به‌خاطر `zoneinfo` و `httpx` مدرن)
+- یک **توکن ربات تلگرام** از [@BotFather](https://t.me/BotFather)
 
-## ⚙️ نصب و راه‌اندازی
-
-### 1. کلون / دانلود پروژه
+### مراحل
 
 ```bash
-git clone https://github.com/TahaT80/Crypto_alert
-cd rez
-```
+# 1. کلون یا دانلود
+git clone https://github.com/TahaT80/Crypto_alert.git
+cd Crypto_alert
 
-### 2. ساخت محیط مجازی (پیشنهادی)
+# 2. ساخت محیط مجازی
+python3 -m venv venv
+source venv/bin/activate        # لینوکس/مک
+# venv\Scripts\activate         # ویندوز
 
-```bash
-python -m venv .venv
-
-# ویندوز
-.venv\Scripts\activate
-
-# لینوکس / مک
-source .venv/bin/activate
-```
-
-### 3. نصب وابستگی‌ها
-
-```bash
+# 3. نصب وابستگی‌ها
+pip install --upgrade pip
 pip install -r requirements.txt
-```
 
-> اگر می‌خواهید نمادهای TradingView (`BTC.D`، `TOTAL` و …) هم کار کنند، خط زیر را از انتهای `requirements.txt` از حالت کامنت خارج کنید:
->
-> ```bash
-> pip install tradingview-scraper
-> ```
+# 4. تنظیم .env
+cp .env.example .env
+nano .env                        # TELEGRAM_TOKEN را پر کن
 
-### 4. تنظیم متغیرهای محیطی (توصیه‌شده)
-
-ربات سه کلید دارد که بهتر است به‌جای قرار دادن در سورس، از **Environment Variable** استفاده شود:
-
-| متغیر | توضیح | اختیاری؟ |
-|-------|-------|---------|
-| `TELEGRAM_TOKEN` | توکن ربات تلگرام (**اجباری**) | ❌ |
-| `CHART_API_KEY` | کلید سرویس [chart-img.com](https://chart-img.com) برای چارت تکنیکال | ⚠️ اختیاری (اگر نباشد، فقط متن قیمت نمایش داده می‌شود) |
-| `CMC_API_KEY` | کلید CoinMarketCap (در حال حاضر استفاده نمی‌شود؛ برای توسعه آینده) | ✅ |
-
-**ویندوز (PowerShell):**
-
-```powershell
-$env:TELEGRAM_TOKEN = "123456:ABC-DEF..."
-$env:CHART_API_KEY = "your_chart_img_key"
-```
-
-**لینوکس / مک:**
-
-```bash
-export TELEGRAM_TOKEN="123456:ABC-DEF..."
-export CHART_API_KEY="your_chart_img_key"
-```
-
-> ⚠️ **نکتهٔ امنیتی مهم:** در حال حاضر توکن‌ها به‌صورت پیش‌فرض در **داخل `main.py`** نیز قرار داده شده‌اند (خطوط ۴۸–۵۰). این توکن‌ها **عمومی شده‌اند** و باید:
-> 1. از `@BotFather` یک توکن **جدید** بگیرید (`/revoke`).
-> 2. آن را فقط در Environment Variable قرار دهید.
-> 3. خطوط ۴۸–۵۰ از `main.py` را به رشتهٔ خالی (`""`) تغییر دهید.
-
----
-
-## ▶️ اجرا
-
-```bash
+# 5. اجرا
 python main.py
 ```
 
-اگر همه‌چیز درست باشد، در کنسول چیزی شبیه این می‌بینید:
+اگر همه‌چی درست باشد:
 
 ```
-2025-01-01 12:00:00,000 INFO: BOT IS STARTING ...
-2025-01-01 12:00:00,123 INFO: Launching check_alerts background task
+2025-01-15 10:00:00 INFO: 🚀 BOT IS STARTING ...
+2025-01-15 10:00:00 INFO: ✅ Scheduler started — demote expired daily at 00:05
+2025-01-15 10:00:00 INFO: check_alerts started
+2025-01-15 10:00:00 INFO: Application started
 ```
 
-سپس در تلگرام به ربات خود پیام `/start` بفرستید. ✅
+برو و در تلگرام به رباتت `/start` بفرست.
 
 ---
 
-## 🧭 راهنمای دستورها
+## ⚙️ پیکربندی
 
-| دستور | توضیح | مثال |
-|-------|-------|------|
-| `/start` | شروع و نمایش منوی اصلی | — |
-| `/help` | راهنمای کامل | — |
-| `/add SYMBOL TARGET U\|D` | افزودن هشدار (دستی) | `/add BTCUSDT 120000 U` |
-| `/list` | نمایش لیست هشدارها | — |
-| `/delete ID` | حذف هشدار با شناسه | `/delete 1` |
-| `/p SYMBOL` | قیمت لحظه‌ای | `/p BTC` |
-| `/chart SYMBOL [TF]` | چارت تکنیکال | `/chart ETHUSDT 4h` |
-| `/news [دسته]` | اخبار بازار (`ALL`/`CRYPTO`/`OTHER`) | `/news crypto` |
-| `/cancel` | لغو عملیات جاری (مثلاً حالت «در انتظار قیمت هدف») | — |
+تمام تنظیمات در فایل `.env`:
 
-### دکمه‌های منو (ReplyKeyboard)
+```env
+# === Telegram ===
+TELEGRAM_TOKEN=123456:ABC-DEF...          # الزامی
 
-| دکمه | عملکرد |
-|------|--------|
-| 📋 هشدارهای من | نمایش لیست هشدارها + دکمه‌های شیشه‌ای حذف/چارت |
-| 💲 قیمت لحظه‌ای | درخواست نام ارز برای نمایش قیمت |
-| ➕ افزودن هشدار | نمایش راهنمای ساخت هشدار |
-| 🗑 حذف هشدار | میان‌بر به لیست هشدارها (برای حذف تکی/همه) |
-| 📰 اخبار بازار | دریافت آخرین اخبار از RSS |
-| ℹ️ راهنما | نمایش پیام راهنما |
-| ↩️ بازگشت | خروج از حالت فعلی |
+# === ادمین ===
+ADMIN_IDS=123456789,987654321            # چند ادمین، با کاما
+ADMIN_CONTACT=@your_admin                # یوزرنیم برای نمایش به کاربران
 
-### دکمه‌های شیشه‌ای (Inline)
+# === زمان‌بندی ===
+TIMEZONE=Asia/Tehran
 
-- زیر پیام قیمت: `📊 چارت 1h` / `4h` / `1d` و `🎯 تنظیم هشدار قیمت`
-- در لیست هشدارها: `🗑 #ID` (حذف)، `📊 SYMBOL` (چارت)، `◀️ قبلی` / `بعدی ▶️` (صفحه‌بندی)، `🔄 بروزرسانی`، `🗑 حذف همه`
-- در پنل اخبار: `🌐 همه` / `🪙 کریپتو` / `📊 سایر` و `🔄 بروزرسانی`
+# === API های اختیاری ===
+CHART_API_KEY=                           # برای چارت تکنیکال
+CMC_API_KEY=                             # CoinMarketCap
+```
+
+### متغیرهای کلیدی
+
+| متغیر | الزامی | توضیح |
+|---|---|---|
+| `TELEGRAM_TOKEN` | ✅ | توکن BotFather |
+| `ADMIN_IDS` | ❌ | آیدی عددی ادمین‌ها برای دستورات ادمینی |
+| `ADMIN_CONTACT` | ❌ | یوزرنیم ادمین (برای نمایش به کاربران) |
+| `CHART_API_KEY` | ❌ | بدون آن فقط متن قیمت (بدون تصویر) |
 
 ---
 
-## 🧠 معماری و منطق داخلی
+## 💬 دستورات ربات
 
-### ۱. ذخیره هشدارها
+### دستورات عمومی
 
-- فایل `alerts.json` با کلید `chat_id` (رشته) و مقدار **لیست** هشدارها ساختار یافته است.
-- هر هشدار شامل فیلدهای زیر است:
+| دستور | توضیح |
+|---|---|
+| `/start` | منوی اصلی + ثبت‌نام خودکار |
+| `/help` | راهنمای کامل |
+| `/cancel` | لغو عملیات جاری |
+| `/add SYM PRICE [U\|D]` | افزودن هشدار قیمت |
+| `/list` | لیست هشدارها (با صفحه‌بندی) |
+| `/delete ID` | حذف یک هشدار |
+| `/p SYM` | قیمت لحظه‌ای |
+| `/chart SYM [TF]` | چارت تکنیکال |
+| `/plan` | مشاهده/تغییر پلن |
+| `/subscribe` | عضویت |
+| `/unsubscribe` | لغو عضویت |
 
-```json
-{
-  "ID": 1,
-  "symbol": "BTCUSDT",
-  "target": 50000.0,
-  "Goal": "D"
+### دستورات ادمین
+
+| دستور | توضیح |
+|---|---|
+| `/admin` | باز کردن پنل ادمین (interactive) |
+| `/grant <user_id> <PLAN> [days]` | اختصاص پلن (مثل `/grant 123 PRO 30`) |
+| `/revoke <user_id>` | حذف کامل اشتراک |
+| `/userinfo <user_id>` | نمایش اطلاعات پلن یک کاربر |
+| `/plans` | نمایش پلن‌ها + آمار ادمین |
+
+### منوی شیشه‌ای (Reply Keyboard)
+
+```
+┌─────────────────────┬─────────────────────┐
+│  📋 هشدارهای من      │  💲 قیمت لحظه‌ای      │
+├─────────────────────┼─────────────────────┤
+│  ➕ افزودن هشدار     │  🗑 حذف هشدار        │
+├─────────────────────┼─────────────────────┤
+│  💎 پلن‌ها            │  ℹ️ راهنما           │
+├─────────────────────┼─────────────────────┤
+│                     │  💼 پنل ادمین*       │
+└─────────────────────┴─────────────────────┘
+* فقط برای ادمین
+```
+
+---
+
+## 💎 پلن‌های اشتراک
+
+### فلوی خرید (امن)
+
+1. کاربر روی `💎 پلن حرفه‌ای — 💳 خرید` کلیک می‌کند
+2. **ربات هیچ تغییری در پلن نمی‌دهد** — فقط اطلاعات پرداخت نشان می‌دهد
+3. **درخواست به ادمین(ها) ارسال می‌شود** با دکمه‌های ✅ / ❌
+4. کاربر مبلغ را به `ADMIN_CONTACT` واریز می‌کند و رسید می‌فرستد
+5. **ادمین تایید می‌کند** → پلن خودکار فعال می‌شود + به کاربر اطلاع داده می‌شود
+6. یا **ادمین رد می‌کند** → کاربر مطلع می‌شود
+
+### Auto-Demotion
+
+- اگر پلن PRO/VIP منقضی شود:
+  - در `/plan` → خودکار به FREE تنزل می‌یابد
+  - در `/userinfo` → خودکار به FREE تنزل می‌یابد
+  - هر شب ساعت `00:05` → همه کاربران منقضی یکجا تنزل می‌یابند
+  - در استارت بات → یک‌بار cleanup کامل
+
+---
+
+## 👑 پنل ادمین
+
+بعد از تنظیم `ADMIN_IDS` در `.env` و ری‌استارت:
+
+1. در تلگرام `/admin` بفرست
+2. پنل زیر نمایش داده می‌شود:
+
+```
+💼 پنل ادمین
+
+📊 آمار کاربران:
+  🆓 FREE: 30
+  ⭐ PRO: 15
+  💎 VIP: 5
+  ⚠️ منقضی: 2
+  👥 مجموع: 52
+
+📩 درخواست‌های در انتظار: 2
+
+[📩 درخواست‌های خرید (2)]
+[📊 آمار] [👥 لیست کاربران]
+[🔍 جستجوی کاربر]
+[↩️ بستن]
+```
+
+---
+
+## 🖥 استقرار روی سرور
+
+### روش ۱: systemd (توصیه‌شده)
+
+```bash
+# روی سرور (Debian/Ubuntu)
+sudo apt update && sudo apt install -y python3.11 python3.11-venv python3-pip
+
+# ساخت کاربر و پوشه
+sudo useradd -r -s /bin/false -d /opt/newsbot newsbot
+sudo mkdir -p /opt/newsbot
+sudo chown newsbot:newsbot /opt/newsbot
+
+# آپلود فایل‌ها
+scp -r ./* user@SERVER:/tmp/newsbot/
+sudo mv /tmp/newsbot/* /opt/newsbot/
+sudo chown -R newsbot:newsbot /opt/newsbot
+
+# venv
+sudo -u newsbot python3 -m venv /opt/newsbot/venv
+sudo -u newsbot /opt/newsbot/venv/bin/pip install -r /opt/newsbot/requirements.txt
+
+# .env
+sudo -u newsbot cp /opt/newsbot/.env.example /opt/newsbot/.env
+sudo -u newsbot nano /opt/newsbot/.env
+
+# نصب سرویس
+sudo cp /opt/newsbot/deploy/newsbot.service /etc/systemd/system/newsbot.service
+sudo systemctl daemon-reload
+sudo systemctl enable newsbot     # ← فعال در بوت
+sudo systemctl start newsbot
+```
+
+> جزئیات بیشتر: [`deploy/README.md`](deploy/README.md)
+
+---
+
+## 🐳 داکر
+
+### با `docker compose` (توصیه‌شده)
+
+```bash
+docker compose up -d
+docker compose logs -f
+docker compose restart
+```
+
+### با `docker run`
+
+```bash
+docker build -t crypto-alert-bot .
+docker run -d \
+  --name crypto-alert-bot \
+  --restart unless-stopped \
+  --env-file .env \
+  -v $(pwd)/data:/app/data \
+  crypto-alert-bot
+```
+
+---
+
+## 🧠 معماری
+
+### جریان داده
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  Telegram Bot API                    │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│            Application (PTB)                         │
+│  ┌──────────────┐  ┌──────────────┐                 │
+│  │  Handlers    │  │  Callbacks   │                 │
+│  │  (commands)  │  │ (buttons)    │                 │
+│  └──────┬───────┘  └──────┬───────┘                 │
+└─────────┼──────────────────┼────────────────────────┘
+          │                  │
+          ▼                  ▼
+┌─────────────────────────────────────────────────────┐
+│            Domain Layer (bot/*.py)                   │
+│  alerts  │  subscriptions  │  admin                  │
+└────┬─────────────┬──────────────┬───────────────────┘
+     │             │              │
+     ▼             ▼              ▼
+┌─────────────────────────────────────────────────────┐
+│         Storage (in-memory cache + JSON)             │
+│  load_json / save_json  (per-file lock)              │
+└─────────────────────────────────────────────────────┘
+                          │
+                          ▼
+                  ┌──────────────────┐
+                  │  data/*.json     │
+                  └──────────────────┘
+```
+
+### Background Tasks
+
+| Task | Interval | کار |
+|---|---|---|
+| `check_alerts_loop` | ۶۰s | چک قیمت همه هشدارها |
+| `_demote_expired_job` | روزانه ۰۰:۰۵ | تنزل پلن‌های منقضی |
+
+### Optimizations
+
+- **Connection Pool** مشترک برای همه درخواست‌های HTTP (۱۵ connection همزمان)
+- **In-memory cache** برای فایل‌های JSON (پس از اولین load، I/O صفر)
+- **Per-file lock** به جای global (parallel reads)
+- **Parallel price fetching** با `asyncio.gather` در رندر alert list و چک loop
+- **Skip empty saves** در alert loop (اگه تغییری نکرد، فایل save نمیشه)
+
+---
+
+## 🔧 سفارشی‌سازی
+
+### تغییر قیمت/محدودیت پلن‌ها
+
+در [`bot/config.py`](bot/config.py):
+
+```python
+PLANS: Dict[str, Plan] = {
+    "FREE": Plan(price_toman=0, max_alerts=3, max_charts_per_day=2, ...),
+    "PRO": Plan(price_toman=250_000, duration_days=30, max_alerts=8, ...),
+    "VIP": Plan(price_toman=750_000, duration_days=30, max_alerts=-1, ...),
 }
 ```
 
-- تمام خواندن/نوشتن‌ها با **`asyncio.Lock`** و از طریق `asyncio.to_thread` (برای جلوگیری از بلاک شدن حلقه) انجام می‌شود.
-- نوشتن به‌صورت **atomic** با الگوی `tmp + os.replace` است (فایل `alerts.json.tmp` و سپس جایگزینی).
+---
 
-### ۲. حلقهٔ بررسی هشدار (`check_alerts`)
+## 🛠 عیب‌یابی
 
-- هر `PRICE_CHECK_INTERVAL` ثانیه (پیش‌فرض **۱۵ ثانیه**) اجرا می‌شود.
-- قیمت هر نماد **یک‌بار** گرفته و در `price_cache` نگه داشته می‌شود.
-- هشدارهایی که **تریگر** شده‌اند حذف می‌شوند و پیام به کاربر ارسال می‌شود.
-- در صورت **کرش**، تسک به‌صورت خودکار با تأخیر ۵ ثاناه‌ای **ری‌استارت** می‌شود.
-
-### ۳. منبع قیمت
-
-سه لایه با ترتیب اولویت:
-
-1. **Binance Spot** — `https://api.binance.com/api/v3/ticker/24hr`
-2. **Binance Futures** — `https://fapi.binance.com/fapi/v1/ticker/24hr` (اگر نماد با `.P` تمام شود)
-3. **TradingView** (اگر `tradingview-scraper` نصب باشد) — برای `BTC.D`، `TOTAL`، `TOTAL2` و سایر دامیننس‌ها
-4. **تشخیص خودکار quote** — اگر فقط `BTC` فرستاده شود، ربات به ترتیب `USDT`، `FDUSD`، `TUSD`، `BUSD`، `USDC`، `BTC`، `ETH` را امتحان می‌کند.
-
-### ۴. کش و ریت‌لیمیت
-
-- تمام درخواست‌های HTTP از `fetch_with_retry` رد می‌شوند (پیش‌فرض **۳ تلاش** با بک‌آف خطی).
-- روی پاسخ‌های `429`/`5xx` مجدداً تلاش می‌شود.
-- `400` به‌معنای «نماد نامعتبر» در نظر گرفته شده و سریع برمی‌گردد.
-
-### ۵. سیستم اخبار
-
-- منابع: ۸ فید RSS (Crypto.News, Decrypt, Cointelegraph, CryptoPotato, U.Today, BeInCrypto, Bitcoinist, News.Bitcoin.com).
-- هر ۵ دقیقه (NEWS_CACHE_TTL=300) کش به‌روزرسانی می‌شود.
-- **بدون نیاز به API Key** — فقط RSS.
-- پس از دریافت:
-  - **رتبه‌بندی اهمیت** با کلیدواژه‌های پراهمیت (نهادهای نظارتی، فدرال رزرو، هک، ETF، دامیننس و …) + امتیاز تازگی.
-  - **تشخیص کریپتو/غیرکریپتو** با فهرست بلندی از نمادها و مفاهیم.
-  - **ترجمهٔ خودکار** عنوان انگلیسی به فارسی با دو سرویس جایگزین:
-    1. [Lingva](https://lingva.ml) (اولویت اول)
-    2. [MyMemory](https://mymemory.translated.net) (پشتیبان)
-  - کش ترجمه در حافظه (`TRANSLATION_CACHE`) برای جلوگیری از درخواست تکراری.
-
-### ۴. زمان
-
-- تمام نمایش زمان بر اساس **منطقه زمانی تهران** (`Asia/Tehran`) است.
-- تابع `time_ago` خروجی فارسی تولید می‌کند: `۵ دقیقه پیش`، `۲ ساعت پیش`، `۳ روز پیش`.
+| مشکل | علت | راه‌حل |
+|---|---|---|
+| `Conflict: terminated by other getUpdates` | دو نمونه از بات در حال اجراست | نمونه قبلی را ببندید: `pkill -9 -f 'python.*main.py'` |
+| `401 Unauthorized` | توکن اشتباه | توکن را از @BotFather دوباره بگیرید |
+| `ImportError: zoneinfo` | Python < 3.10 | به Python 3.10+ ارتقا دهید |
+| چارت نمایش داده نمی‌شود | `CHART_API_KEY` خالی | از [chart-img.com](https://chart-img.com) کلید بگیرید |
+| `Permission denied: data/` | مالکیت فایل‌ها | `sudo chown -R newsbot:newsbot /opt/newsbot` |
+| بات بعد از ریبوت بالا نمیاد | سرویس enable نشده | `sudo systemctl enable newsbot` |
 
 ---
 
-## 🛠 عیب‌یابی (Troubleshooting)
+## 🧪 تست
 
-| مشکل | علت احتمالی | راه‌حل |
-|------|-------------|-------|
-| `RuntimeError: ❌ TELEGRAM_TOKEN تنظیم نشده است` | متغیر محیطی خالی است | `TELEGRAM_TOKEN` را تنظیم کنید یا مقدار هاردکد را اصلاح کنید |
-| نماد پیدا نمی‌شود | در بازار اسپات/فیوچرز بایننس لیست نشده | نام دقیق‌تری وارد کنید (مثل `BTCUSDT` به‌جای `BTC`) یا برای دامیننس از `BTC.D` استفاده کنید |
-| چارت ارسال نمی‌شود | `CHART_API_KEY` تنظیم نیست یا نامعتبر است | از [chart-img.com](https://chart-img.com) کلید بگیرید و در env قرار دهید |
-| دامیننس‌ها کار نمی‌کنند | `tradingview-scraper` نصب نیست | `pip install tradingview-scraper` |
-| ترجمهٔ عناوین خیلی کُند است | اولین بار کش خالی است | بعد از چند دقیقه سرعت بهتر می‌شود (کش در حافظه) |
-| ربات روی پیام‌ها جواب نمی‌دهد | در حالت «در انتظار قیمت هدف» گیر کرده | `/cancel` یا دکمهٔ `↩️ بازگشت` بزنید |
+### تست قیمت
 
-لاگ‌های کامل در `bot.log` ذخیره می‌شود.
+```bash
+python -c "
+import asyncio
+from bot.prices import get_price_info
 
----
+async def main():
+    for sym in ['BTCUSDT', 'ETHUSDT', 'BTC.D']:
+        info = await get_price_info(sym)
+        if info:
+            print(f'{sym}: {info[\"price\"]} ({info[\"market\"]})')
 
-## 🗺 نقشهٔ راه (Roadmap)
+asyncio.run(main())
+"
+```
 
-- [ ] اتصال به دیتابیس (SQLite/Postgres) به‌جای JSON برای مقیاس‌پذیری
-- [ ] پشتیبانی از چند صرافی (Bybit, OKX, KuCoin)
-- [ ] هشدارهای شرطی (مثلاً «اگر قیمت ۲٪ بالا رفت، خبر بده»)
-- [ ] Webhook به‌جای Polling برای مصرف بهتر منابع
-- [ ] پنل وب برای مدیریت هشدارها
+### تست health
 
----
-
-## 📜 لایسنس
-
-این پروژه برای استفادهٔ شخصی/آموزشی نوشته شده است. مسئولیت هرگونه استفادهٔ تجاری بر عهدهٔ کاربر است.
+```bash
+curl -sf https://api.telegram.org/bot${TELEGRAM_TOKEN}/getMe | python -m json.tool
+```
 
 ---
 
-## 🙏 تشکر
+## 🤝 مشارکت
 
-- [python-telegram-bot](https://python-telegram-bot.org)
-- [Binance API](https://binance-docs.github.io/apidocs/)
-- [chart-img.com](https://chart-img.com) — برای چارت‌های تکنیکال
-- [Lingva Translate](https://lingva.ml) و [MyMemory](https://mymemory.translated.net) — برای ترجمهٔ فارسی
+1. Fork کنید
+2. برنچ بسازید (`git checkout -b feature/amazing`)
+3. تغییرات را commit کنید (`git commit -m 'feat: add amazing feature'`)
+4. Push کنید (`git push origin feature/amazing`)
+5. Pull Request باز کنید
+
+---
+
+## 📜 مجوز
+
+این پروژه تحت مجوز **MIT** منتشر شده است. برای جزئیات [`LICENSE`](LICENSE) را ببینید.
+
+---
+
+<p align="center">
+  ساخته‌شده با ❤️ برای جامعه کریپتو فارسی
+</p>

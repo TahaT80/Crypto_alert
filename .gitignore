@@ -1,19 +1,58 @@
-# محیط و توکن‌ها
-.env
-*.env.local
-venv/
-.venv/
+# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
 
-# لاگ و دیتای محلی
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Logs
+*.log
 bot.log
 crash_report.txt
 
-# ویرایشگر
-.vscode/
+# Data (JSON files with user data)
+data/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 .DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Coverage / tests
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Distribution
+build/
+dist/
+*.whl
