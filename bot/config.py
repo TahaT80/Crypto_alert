@@ -157,6 +157,12 @@ ADMIN_IDS: set = {
 }
 ADMIN_CONTACT = _env("ADMIN_CONTACT", "@admin")
 
+if not ADMIN_IDS:
+    logger.warning(
+        "⚠️  ADMIN_IDS تنظیم نشده! نوتیفیکیشن درخواست خرید به ادمین ارسال نمی‌شود.\n"
+        "   در فایل .env اضافه کنید: ADMIN_IDS=123456789"
+    )
+
 
 # ── Logging ────────────────────────────────────────────────
 def setup_logging() -> logging.Logger:

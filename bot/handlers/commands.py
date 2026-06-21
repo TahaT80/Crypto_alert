@@ -92,16 +92,17 @@ async def add_alert_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     args = context.args
     if len(args) not in (2, 3):
         await update.message.reply_text(
-            "❌ فرمت اشتباه است.\n"
-            "فرمت صحیح:\n"
-            "  /add SYMBOL TARGET U|D   (صریح)\n"
-            "  /add SYMBOL TARGET        (جهت خودکار)\n\n"
-            "مثال‌ها:\n"
-            "  /add BTCUSDT 120000 U\n"
+            "❌ فرمت اشتباه است.\n\n"
+            "✅ فرمت صحیح:\n"
+            "  /add نماد قیمت\n"
+            "  /add نماد قیمت جهت\n\n"
+            "📌 مثال‌ها:\n"
+            "  /add BTCUSDT 120000\n"
             "  /add ETHUSDT 3000 D\n"
-            "  /add BTC.D 55 U\n"
-            "  /add BTCUSDT 120000      ← بالاتر از قیمت فعلی → U\n"
-            "  /add ETHUSDT 2000        ← پایین‌تر از قیمت فعلی → D"
+            "  /add BTC.D 55\n\n"
+            "💡 فقط عدد بفرست، خودش جهت رو تشخیص میده:\n"
+            "  بالاتر از قیمت فعلی → U ⬆️\n"
+            "  پایین‌تر از قیمت فعلی → D ⬇️"
         )
         return
     symbol_raw = args[0]
@@ -320,7 +321,17 @@ async def _send_chart_to_chat(
     )
     data = await download_bytes(chart_url)
     if not data:
-        await bot.send_message(chat_id=chat_id, text="❌ خطا در دریافت چارت از سرور.")
+        logger.warning("Chart download failed for %s (key=%s)", symbol, "set" if CHART_API_KEY else "empty")
+        await bot.send_message(
+            chat_id=chat_id,
+            text=(
+                f"❌ خطا در دریافت تصویر چارت.\n\n"
+                f"📊 اطلاعات قیمت:\n"
+                f"💰 قیمت: {fmt_price(info['price'])}\n"
+                f"{fmt_change(ch)}\n\n"
+                f"💡 برای رفع مشکل، کلید چارت را در .env تنظیم کنید."
+            ),
+        )
         return
     try:
         await bot.send_photo(chat_id=chat_id, photo=data, caption=caption)
@@ -488,7 +499,7 @@ async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def plans_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """/plans — نمایش پلن‌ها برای ادمین با آمار"""
-    from ..subscriptions import is_admin
+    from ..subscriptions import is_admin, Subscription
     from ..config import PLANS
     from ..storage import load_subscriptions
 

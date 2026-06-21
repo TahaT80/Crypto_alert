@@ -105,6 +105,9 @@ async def notify_admins_new_request(
     plan = PLANS.get(plan_code)
     if not plan:
         return
+    if not ADMIN_IDS:
+        logger.warning("No ADMIN_IDS configured — cannot notify admins for request %s", req_id)
+        return
     user_line = await _format_user(bot, chat_id)
     text = (
         "📩 *درخواست خرید جدید*\n\n"
@@ -130,6 +133,7 @@ async def notify_admins_new_request(
                 chat_id=admin_id, text=text, reply_markup=kb,
                 parse_mode="Markdown",
             )
+            logger.info("Notified admin %s for request %s", admin_id, req_id)
         except BadRequest as exc:
             logger.warning("Failed to notify admin %s: %s", admin_id, exc)
         except Exception as exc:

@@ -62,7 +62,9 @@ async def handle_free_message(
         target, direction = result
         if not info:
             await update.message.reply_text(
-                f"❌ نماد {pending_sym} یافت نشد.", reply_markup=main_keyboard()
+                f"❌ نماد {pending_sym} یافت نشد.\n"
+                "لطفاً نماد صحیح را وارد کنید (مثل BTCUSDT، ETHUSDT).",
+                reply_markup=main_keyboard(),
             )
             return
         try:
