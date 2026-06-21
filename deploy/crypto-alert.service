@@ -1,0 +1,19 @@
+[Unit]
+Description=Crypto Alert Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=crypto-alert
+Group=crypto-alert
+WorkingDirectory=/opt/crypto-alert
+ExecStart=/opt/crypto-alert/venv/bin/python main.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=crypto-alert
+
+[Install]
+WantedBy=multi-user.target
