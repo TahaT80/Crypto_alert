@@ -5,8 +5,9 @@
   <a href="#-نصب-سریع">نصب</a> •
   <a href="#-دستورات">دستورات</a> •
   <a href="#-پنل-ادمین">پنل ادمین</a> •
-  <a href="#-استقرار-روی-سرور">استقرار</a> •
+  <a href="#-استقرار-روی-سرور-لینوکس">استقرار لینوکس</a> •
   <a href="#-داکر">داکر</a> •
+  <a href="#-به‌روزرسانی">آپدیت</a> •
   <a href="#-معماری">معماری</a>
 </p>
 
@@ -94,8 +95,8 @@ Crypto_alert/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── deploy/
-│   ├── newsbot.service        # systemd unit
-│   ├── install.sh             # اسکریپت نصب
+│   ├── crypto-alert.service   # systemd unit
+│   ├── install.sh             # اسکریپت نصب خودکار
 │   └── README.md              # راهنمای deploy
 ├── bot/
 │   ├── __init__.py
@@ -131,7 +132,7 @@ Crypto_alert/
 - **Python 3.10+** (به‌خاطر `zoneinfo` و `httpx` مدرن)
 - یک **توکن ربات تلگرام** از [@BotFather](https://t.me/BotFather)
 
-### مراحل
+### مراحل نصب
 
 ```bash
 # 1. کلون یا دانلود
@@ -165,6 +166,283 @@ python main.py
 ```
 
 برو و در تلگرام به رباتت `/start` بفرست.
+
+---
+
+## 🖥 استقرار روی سرور لینوکس
+
+### روش ۱: systemd (توصیه‌شده)
+
+#### مرحله ۱: آماده‌سازی سرور
+
+```bash
+# آپدیت سیستم و نصب پیش‌نیازها (Ubuntu/Debian)
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3.11 python3.11-venv python3-pip git
+
+# برای CentOS/RHEL/Rocky/Alma
+# sudo dnf install -y python3.11 python3.11-pip git
+```
+
+#### مرحله ۲: ساخت کاربر اختصاصی
+
+```bash
+# ساخت کاربر سیستمی (بدون دسترسی shell)
+sudo useradd -r -s /bin/false -d /opt/crypto-alert crypto-alert
+
+# ساخت پوشه پروژه
+sudo mkdir -p /opt/crypto-alert
+sudo chown crypto-alert:crypto-alert /opt/crypto-alert
+```
+
+#### مرحله ۳: دانلود و نصب پروژه
+
+```bash
+# کلون ریپازیتوری
+cd /tmp
+git clone https://github.com/TahaT80/Crypto_alert.git
+cd Crypto_alert
+
+# کپی فایل‌ها به پوشه نهایی
+sudo cp -r * /opt/crypto-alert/
+sudo cp -r .env.example /opt/crypto-alert/
+sudo chown -R crypto-alert:crypto-alert /opt/crypto-alert
+```
+
+#### مرحله ۴: ساخت محیط مجازی و نصب وابستگی‌ها
+
+```bash
+# ورود به دایرکتوری پروژه
+cd /opt/crypto-alert
+
+# ساخت محیط مجازی
+sudo -u crypto-alert python3 -m venv /opt/crypto-alert/venv
+
+# نصب وابستگی‌ها
+sudo -u crypto-alert /opt/crypto-alert/venv/bin/pip install --upgrade pip
+sudo -u crypto-alert /opt/crypto-alert/venv/bin/pip install -r /opt/crypto-alert/requirements.txt
+```
+
+#### مرحله ۵: تنظیم فایل محیطی
+
+```bash
+# کپی .env.example به .env
+sudo -u crypto-alert cp /opt/crypto-alert/.env.example /opt/crypto-alert/.env
+
+# ویرایش فایل .env
+sudo -u crypto-alert nano /opt/crypto-alert/.env
+```
+
+محتوای `.env` را تنظیم کنید:
+
+```env
+# === Telegram ===
+TELEGRAM_TOKEN=123456:ABC-DEF...          # الزامی
+
+# === ادمین ===
+ADMIN_IDS=123456789,987654321            # آیدی عددی ادمین‌ها
+ADMIN_CONTACT=@your_admin                # یوزرنیم ادمین
+
+# === زمان‌بندی ===
+TIMEZONE=Asia/Tehran
+
+# === API های اختیاری ===
+CHART_API_KEY=                           # برای چارت تکنیکال
+```
+
+#### مرحله ۶: ایجاد و فعال‌سازی سرویس systemd
+
+فایل سرویس را بسازید:
+
+```bash
+sudo nano /etc/systemd/system/crypto-alert.service
+```
+
+محتوای زیر را قرار دهید:
+
+```ini
+[Unit]
+Description=Crypto Alert Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=crypto-alert
+Group=crypto-alert
+WorkingDirectory=/opt/crypto-alert
+ExecStart=/opt/crypto-alert/venv/bin/python main.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+# امنیت
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/crypto-alert/data
+
+# لاگ‌ها
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=crypto-alert
+
+[Install]
+WantedBy=multi-user.target
+```
+
+فعال‌سازی و استارت سرویس:
+
+```bash
+# ریلود systemd
+sudo systemctl daemon-reload
+
+# فعال‌سازی در بوت
+sudo systemctl enable crypto-alert
+
+# استارت سرویس
+sudo systemctl start crypto-alert
+
+# بررسی وضعیت
+sudo systemctl status crypto-alert
+```
+
+#### مرحله ۷: مدیریت سرویس
+
+```bash
+# مشاهده وضعیت
+sudo systemctl status crypto-alert
+
+# استارت
+sudo systemctl start crypto-alert
+
+# استاپ
+sudo systemctl stop crypto-alert
+
+# ری‌استارت
+sudo systemctl restart crypto-alert
+
+# مشاهده لاگ‌ها (زنده)
+sudo journalctl -u crypto-alert -f
+
+# مشاهده لاگ‌های اخیر
+sudo journalctl -u crypto-alert -n 50
+
+# مشاهده لاگ‌ها از زمان خاص
+sudo journalctl -u crypto-alert --since "2025-01-15 10:00"
+```
+
+#### مرحله ۸: چک‌لیست نهایی نصب
+
+```bash
+# چک کردن اجرای بات
+curl -sf https://api.telegram.org/bot${TELEGRAM_TOKEN}/getMe
+
+# چک کردن پورت‌ها
+sudo ss -tlnp | grep python
+
+# چک کردن مالکیت فایل‌ها
+ls -la /opt/crypto-alert/data/
+
+# چک کردن وضعیت سرویس
+systemctl is-enabled crypto-alert
+```
+
+---
+
+### روش ۲: اسکریپت نصب خودکار
+
+اگر فایل `deploy/install.sh` موجود باشد:
+
+```bash
+# دانلود و اجرا
+cd /tmp
+git clone https://github.com/TahaT80/Crypto_alert.git
+cd Crypto_alert
+chmod +x deploy/install.sh
+sudo ./deploy/install.sh
+```
+
+---
+
+### روش ۳: نصب دستی (بدون systemd)
+
+اگر نمی‌خواهید از systemd استفاده کنید:
+
+```bash
+# ورود به پوشه پروژه
+cd /opt/crypto-alert
+
+# اجرا با nohup
+sudo -u crypto-alert nohup /opt/crypto-alert/venv/bin/python main.py > /var/log/crypto-alert.log 2>&1 &
+
+# یا استفاده از screen
+sudo -u crypto-alert screen -dmS crypto-alert /opt/crypto-alert/venv/bin/python main.py
+
+# برای مشاهده screen
+screen -r crypto-alert
+```
+
+---
+
+## 🔄 به‌روزرسانی
+
+### آپدیت دستی
+
+```bash
+# ۱. توقف سرویس
+sudo systemctl stop crypto-alert
+
+# ۲. ورود به پوشه پروژه
+cd /opt/crypto-alert
+
+# ۳. دریافت تغییرات
+sudo -u crypto-alert git pull origin main
+
+# ۴. آپدیت وابستگی‌ها
+sudo -u crypto-alert /opt/crypto-alert/venv/bin/pip install -r /opt/crypto-alert/requirements.txt
+
+# ۵. استارت مجدد
+sudo systemctl start crypto-alert
+
+# ۶. بررسی وضعیت
+sudo systemctl status crypto-alert
+```
+
+### اسکریپت آپدیت خودکار
+
+یک فایل بسازید: `sudo nano /opt/crypto-alert/update.sh`
+
+```bash
+#!/bin/bash
+cd /opt/crypto-alert
+sudo systemctl stop crypto-alert
+sudo -u crypto-alert git pull origin main
+sudo -u crypto-alert /opt/crypto-alert/venv/bin/pip install -r /opt/crypto-alert/requirements.txt
+sudo systemctl start crypto-alert
+echo "✅ Update completed at $(date)"
+```
+
+اجازه اجرا بدهید:
+
+```bash
+chmod +x /opt/crypto-alert/update.sh
+```
+
+اجرای آپدیت:
+
+```bash
+sudo /opt/crypto-alert/update.sh
+```
+
+### آپدیت از طریق crontab (خودکار روزانه)
+
+```bash
+# ویرایش crontab
+sudo crontab -e
+
+# اضافه کردن خط زیر (هر روز ساعت ۴ صبح)
+0 4 * * * /opt/crypto-alert/update.sh >> /var/log/crypto-alert-update.log 2>&1
+```
 
 ---
 
@@ -292,43 +570,6 @@ CMC_API_KEY=                             # CoinMarketCap
 
 ---
 
-## 🖥 استقرار روی سرور
-
-### روش ۱: systemd (توصیه‌شده)
-
-```bash
-# روی سرور (Debian/Ubuntu)
-sudo apt update && sudo apt install -y python3.11 python3.11-venv python3-pip
-
-# ساخت کاربر و پوشه
-sudo useradd -r -s /bin/false -d /opt/newsbot newsbot
-sudo mkdir -p /opt/newsbot
-sudo chown newsbot:newsbot /opt/newsbot
-
-# آپلود فایل‌ها
-scp -r ./* user@SERVER:/tmp/newsbot/
-sudo mv /tmp/newsbot/* /opt/newsbot/
-sudo chown -R newsbot:newsbot /opt/newsbot
-
-# venv
-sudo -u newsbot python3 -m venv /opt/newsbot/venv
-sudo -u newsbot /opt/newsbot/venv/bin/pip install -r /opt/newsbot/requirements.txt
-
-# .env
-sudo -u newsbot cp /opt/newsbot/.env.example /opt/newsbot/.env
-sudo -u newsbot nano /opt/newsbot/.env
-
-# نصب سرویس
-sudo cp /opt/newsbot/deploy/newsbot.service /etc/systemd/system/newsbot.service
-sudo systemctl daemon-reload
-sudo systemctl enable newsbot     # ← فعال در بوت
-sudo systemctl start newsbot
-```
-
-> جزئیات بیشتر: [`deploy/README.md`](deploy/README.md)
-
----
-
 ## 🐳 داکر
 
 ### با `docker compose` (توصیه‌شده)
@@ -430,8 +671,8 @@ PLANS: Dict[str, Plan] = {
 | `401 Unauthorized` | توکن اشتباه | توکن را از @BotFather دوباره بگیرید |
 | `ImportError: zoneinfo` | Python < 3.10 | به Python 3.10+ ارتقا دهید |
 | چارت نمایش داده نمی‌شود | `CHART_API_KEY` خالی | از [chart-img.com](https://chart-img.com) کلید بگیرید |
-| `Permission denied: data/` | مالکیت فایل‌ها | `sudo chown -R newsbot:newsbot /opt/newsbot` |
-| بات بعد از ریبوت بالا نمیاد | سرویس enable نشده | `sudo systemctl enable newsbot` |
+| `Permission denied: data/` | مالکیت فایل‌ها | `sudo chown -R crypto-alert:crypto-alert /opt/crypto-alert` |
+| بات بعد از ریبوت بالا نمیاد | سرویس enable نشده | `sudo systemctl enable crypto-alert` |
 
 ---
 
