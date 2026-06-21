@@ -274,14 +274,6 @@ ExecStart=/opt/crypto-alert/venv/bin/python main.py
 Restart=always
 RestartSec=10
 Environment=PYTHONUNBUFFERED=1
-
-# امنیت
-NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/opt/crypto-alert/data
-
-# لاگ‌ها
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=crypto-alert
