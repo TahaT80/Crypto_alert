@@ -109,7 +109,6 @@ Crypto_alert/
 │   ├── alerts.py              # CRUD هشدار + تسک پس‌زمینه
 │   ├── subscriptions.py       # پلن‌ها + auto-demotion
 │   ├── admin.py               # پنل ادمین + pending requests
-│   ├── long_msg.py            # ارسال پیام طولانی
 │   ├── update.py              # startup + shutdown + error handler
 │   └── handlers/
 │       ├── commands.py        # /start, /plan, /grant, /admin, ...

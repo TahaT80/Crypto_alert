@@ -108,7 +108,15 @@ def build_application() -> Application:
 
 
 def main() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        logger.critical(
+            "Cannot create data directory %s: %s. "
+            "Check that the bot user has write permission to the project folder.",
+            DATA_DIR, exc,
+        )
+        raise
 
     logger.info("🚀 BOT IS STARTING ...")
     try:

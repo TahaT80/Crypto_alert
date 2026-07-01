@@ -29,7 +29,6 @@ TIMEZONE: str = _env("TIMEZONE", "Asia/Tehran")
 
 # ── Storage paths ──────────────────────────────────────────
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-DATA_DIR.mkdir(exist_ok=True)
 ALERTS_FILE = str(DATA_DIR / "alerts.json")
 SUBSCRIBERS_FILE = str(DATA_DIR / "subscribers.json")
 SUBSCRIPTIONS_FILE = str(DATA_DIR / "subscriptions.json")
