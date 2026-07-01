@@ -45,8 +45,8 @@ MAX_ALERTS_PER_USER = 50
 # ── Timeouts ───────────────────────────────────────────────
 HTTP_TIMEOUT_GENERAL = 15.0
 HTTP_CONNECT_TIMEOUT = 10.0
-HTTP_TIMEOUT_TELEGRAM_CONNECT = 20.0
-HTTP_TIMEOUT_TELEGRAM_READ = 45.0
+HTTP_TIMEOUT_TELEGRAM_CONNECT = 15.0
+HTTP_TIMEOUT_TELEGRAM_READ = 30.0
 
 # ── TradingView symbols ───────────────────────────────────
 TV_MAP: Dict[str, str] = {
@@ -157,13 +157,6 @@ ADMIN_IDS: set = {
 }
 ADMIN_CONTACT = _env("ADMIN_CONTACT", "@admin")
 
-if not ADMIN_IDS:
-    logger.warning(
-        "⚠️  ADMIN_IDS تنظیم نشده! نوتیفیکیشن درخواست خرید به ادمین ارسال نمی‌شود.\n"
-        "   در فایل .env اضافه کنید: ADMIN_IDS=123456789"
-    )
-
-
 # ── Logging ────────────────────────────────────────────────
 def setup_logging() -> logging.Logger:
     _logger = logging.getLogger("bot")
@@ -187,6 +180,12 @@ def setup_logging() -> logging.Logger:
 
 
 logger = setup_logging()
+
+if not ADMIN_IDS:
+    logger.warning(
+        "⚠️  ADMIN_IDS تنظیم نشده! نوتیفیکیشن درخواست خرید به ادمین ارسال نمی‌شود.\n"
+        "   در فایل .env اضافه کنید: ADMIN_IDS=123456789"
+    )
 
 # ── Timezone ───────────────────────────────────────────────
 try:

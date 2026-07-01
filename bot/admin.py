@@ -1,7 +1,6 @@
 """پنل ادمین: مدیریت درخواست‌های خرید، آمار، لیست کاربران."""
 from __future__ import annotations
 
-import logging
 import secrets
 import time
 from typing import Any, Dict, List, Optional
@@ -16,8 +15,6 @@ from .storage import (
     save_pending_requests,
 )
 from .subscriptions import Subscription, is_admin, upgrade_plan
-
-logger = logging.getLogger("bot")
 
 
 def _md_escape(text: str) -> str:

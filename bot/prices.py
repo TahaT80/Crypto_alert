@@ -15,8 +15,11 @@ from .config import (
 )
 from .http_client import fetch_with_retry
 
-# ── Price cache (TTL = PRICE_CACHE_TTL ثانیه) ──────────────
-_price_cache: Dict[str, Dict[str, Any]] = {}
+# ── Price cache (TTL = PRICE_CACHE_TTL ثانیه, LRU) ─────────
+from collections import OrderedDict
+
+_PRICE_CACHE_MAX = 100
+_price_cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
 _price_cache_time: Dict[str, float] = {}
 
 
@@ -28,12 +31,17 @@ def _cache_get(symbol: str) -> Optional[Dict[str, Any]]:
 
 
 def _cache_set(symbol: str, data: Dict[str, Any]) -> None:
+    if symbol in _price_cache:
+        _price_cache.move_to_end(symbol)
     _price_cache[symbol] = data
     _price_cache_time[symbol] = time.monotonic()
+    if len(_price_cache) > _PRICE_CACHE_MAX:
+        oldest = next(iter(_price_cache))
+        _price_cache.pop(oldest)
+        _price_cache_time.pop(oldest, None)
 
 
 def _cache_bulk(symbols: List[str]) -> Dict[str, Optional[Dict[str, Any]]]:
-    """برگرداندن قیمت‌های کش‌شده برای نمادهای معتبر."""
     now = time.monotonic()
     result = {}
     for s in symbols:
@@ -43,16 +51,17 @@ def _cache_bulk(symbols: List[str]) -> Dict[str, Optional[Dict[str, Any]]]:
     return result
 
 
+# Semaphore مشترک برای همه تماس‌های Binance
+_PRICE_SEM = asyncio.Semaphore(5)
+
+
 async def _fetch_binance_batch(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
-    """دریافت قیمت چند نماد به صورت موازی با محدودیت concurrency."""
     results: Dict[str, Dict[str, Any]] = {}
     if not symbols:
         return results
 
-    semaphore = asyncio.Semaphore(5)
-
     async def _fetch_one(sym: str) -> None:
-        async with semaphore:
+        async with _PRICE_SEM:
             info = await _fetch_binance_single(sym)
             if info:
                 results[sym] = info
@@ -90,9 +99,12 @@ async def _fetch_tradingview(symbol: str) -> Optional[Dict[str, Any]]:
     tv_symbol = TV_MAP.get(symbol)
     if not tv_symbol or _RealTimeData is None:
         return None
+    loop = asyncio.get_running_loop()
     try:
         rtd = _RealTimeData()
-        data_gen = rtd.get_latest_trade_info(exchange_symbol=[tv_symbol])
+        data_gen = await loop.run_in_executor(
+            None, rtd.get_latest_trade_info, [tv_symbol]
+        )
         for packet in data_gen:
             p = packet.get("p") if isinstance(packet, dict) else None
             if not p:
@@ -145,11 +157,12 @@ async def get_price_info(symbol: str) -> Optional[Dict[str, Any]]:
     if info:
         return info
 
-    # اگر نماد با quote تمام نشد، quoteها را امتحان کن ( موازی )
     if not any(symbol.endswith(q) for q in COMMON_QUOTES):
+        async def _try_quote(q: str) -> Optional[Dict[str, Any]]:
+            async with _PRICE_SEM:
+                return await _fetch_binance_single(f"{symbol}{q}")
         results = await asyncio.gather(
-            *[_fetch_binance_single(f"{symbol}{q}") for q in COMMON_QUOTES],
-            return_exceptions=True,
+            *[_try_quote(q) for q in COMMON_QUOTES], return_exceptions=True
         )
         for r in results:
             if isinstance(r, dict) and r:

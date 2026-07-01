@@ -40,11 +40,14 @@ def _load_sync(path: str, default: Any) -> Any:
         return default
 
 
-def _save_sync(path: str, data: Any) -> None:
-    tmp = path + ".tmp"
+def _save_sync(path: str, data: Any, compact: bool = False) -> None:
+    tmp = path + ".tmp." + f"{os.getpid()}"
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        if compact:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        else:
+            json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, path)
 
 
@@ -62,11 +65,11 @@ async def load_json(path: str, default: Any) -> Any:
 
 
 async def save_json(path: str, data: Any) -> None:
-    """ذخیره JSON در فایل و به‌روزرسانی کش."""
     _cache[path] = data
     _cache_loaded.add(path)
+    compact = path.endswith("chart_usage.json")
     async with _get_lock(path):
-        await asyncio.to_thread(_save_sync, path, data)
+        await asyncio.to_thread(_save_sync, path, data, compact=compact)
 
 
 # --- Alerts ---

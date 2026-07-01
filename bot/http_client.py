@@ -11,34 +11,30 @@ from .config import HTTP_CONNECT_TIMEOUT, HTTP_TIMEOUT_GENERAL, logger
 _shared_client: Optional[httpx.AsyncClient] = None
 
 
+_HTTP2_OK = True
+
+
 def get_client() -> httpx.AsyncClient:
-    """کلاینت مشترک (lazy init). هر فراخوانی همان instance را برمی‌گرداند."""
     global _shared_client
     if _shared_client is None:
         limits = httpx.Limits(
             max_connections=15,
             max_keepalive_connections=8,
-            keepalive_expiry=60.0,
+            keepalive_expiry=30.0,
         )
-        try:
-            _shared_client = httpx.AsyncClient(
-                timeout=httpx.Timeout(
-                    HTTP_TIMEOUT_GENERAL, connect=HTTP_CONNECT_TIMEOUT
-                ),
-                limits=limits,
-                follow_redirects=True,
-                headers={"User-Agent": "Mozilla/5.0 (compatible; CryptoAlertBot/3.0)"},
-                http2=True,
-            )
-        except TypeError:
-            _shared_client = httpx.AsyncClient(
-                timeout=httpx.Timeout(
-                    HTTP_TIMEOUT_GENERAL, connect=HTTP_CONNECT_TIMEOUT
-                ),
-                limits=limits,
-                follow_redirects=True,
-                headers={"User-Agent": "Mozilla/5.0 (compatible; CryptoAlertBot/3.0)"},
-            )
+        kwargs = dict(
+            timeout=httpx.Timeout(HTTP_TIMEOUT_GENERAL, connect=HTTP_CONNECT_TIMEOUT),
+            limits=limits,
+            follow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; CryptoAlertBot/3.0)"},
+        )
+        if _HTTP2_OK:
+            try:
+                _shared_client = httpx.AsyncClient(http2=True, **kwargs)
+            except TypeError:
+                _shared_client = httpx.AsyncClient(**kwargs)
+        else:
+            _shared_client = httpx.AsyncClient(**kwargs)
     return _shared_client
 
 
@@ -56,7 +52,7 @@ async def close_client() -> None:
 async def fetch_with_retry(
     url: str,
     retries: int = 2,
-    delay: float = 1.0,
+    delay: float = 0.5,
     timeout: float = HTTP_TIMEOUT_GENERAL,
     *,
     headers: Optional[Dict[str, str]] = None,
@@ -81,7 +77,7 @@ async def fetch_with_retry(
         except (httpx.HTTPError, asyncio.TimeoutError) as exc:
             last_exc = exc
         if attempt < retries - 1:
-            await asyncio.sleep(delay * (attempt + 1))
+            await asyncio.sleep(delay)
     if last_exc:
         logger.warning("fetch_with_retry failed: %s | %s", last_exc, url)
     return None

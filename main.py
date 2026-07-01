@@ -23,8 +23,6 @@
 """
 from __future__ import annotations
 
-import json
-import os
 import traceback
 
 from telegram.ext import (
@@ -37,9 +35,9 @@ from telegram.ext import (
 )
 
 from bot.config import (
+    DATA_DIR,
     HTTP_TIMEOUT_TELEGRAM_CONNECT,
     HTTP_TIMEOUT_TELEGRAM_READ,
-    SUBSCRIBERS_FILE,
     TELEGRAM_TOKEN,
     logger,
 )
@@ -63,7 +61,6 @@ from bot.handlers.commands import (
     userinfo_cmd,
 )
 from bot.handlers.messages import handle_free_message
-from bot.storage import ALERTS_FILE, SUBSCRIPTIONS_FILE
 from bot.update import error_handler, on_shutdown, on_startup
 
 
@@ -111,17 +108,7 @@ def build_application() -> Application:
 
 
 def main() -> None:
-    # ساخت فایل‌های اولیه در صورت نبود
-    for path in (ALERTS_FILE, SUBSCRIBERS_FILE, SUBSCRIPTIONS_FILE):
-        if not os.path.exists(path):
-            try:
-                with open(path, "w", encoding="utf-8") as f:
-                    if path in (SUBSCRIBERS_FILE,):
-                        json.dump([], f)
-                    else:
-                        json.dump({}, f)
-            except Exception:
-                logger.exception("Could not create %s", path)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     logger.info("🚀 BOT IS STARTING ...")
     try:
